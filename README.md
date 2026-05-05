@@ -54,11 +54,17 @@ You can also register a new account from the auth screen.
 
 Create `.env` if needed from `.env.example`.
 
-Current local values:
+Recommended local development values:
 
 ```env
 VITE_API_BASE_URL=/api/v1
 VITE_DEV_PROXY_TARGET=http://127.0.0.1:8000
+```
+
+Recommended production value:
+
+```env
+VITE_API_BASE_URL=https://vanumbaycreativeprojects.art/api/v1
 ```
 
 ## Setup
