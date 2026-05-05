@@ -16,7 +16,7 @@ import ErrorState from '../components/common/ErrorState'
 import LoadingState from '../components/common/LoadingState'
 import DocumentSection from '../components/documents/DocumentSection'
 import ImportDialog from '../components/sharing/ImportDialog'
-import { createDocument, fetchDocuments, importDocument } from '../features/documents/documentsSlice'
+import { createDocument, deleteDocument, fetchDocuments, importDocument } from '../features/documents/documentsSlice'
 import { toaster } from '../utils/toaster'
 
 function DocumentsPage() {
@@ -72,6 +72,29 @@ function DocumentsPage() {
       })
 
       return false
+    }
+  }
+
+  const handleDeleteDocument = async (document) => {
+    const shouldDelete = window.confirm(`Delete "${document.title}"? This action cannot be undone.`)
+
+    if (!shouldDelete) {
+      return
+    }
+
+    try {
+      await dispatch(deleteDocument(document.id)).unwrap()
+      toaster.create({
+        title: 'Document deleted',
+        description: `${document.title} has been removed.`,
+        type: 'success',
+      })
+    } catch (requestError) {
+      toaster.create({
+        title: 'Unable to delete document',
+        description: requestError || 'Please try again.',
+        type: 'error',
+      })
     }
   }
 
@@ -179,6 +202,7 @@ function DocumentsPage() {
               subtitle="Documents you created and control."
               documents={ownedDocuments}
               onOpen={openDocument}
+              onDelete={handleDeleteDocument}
             />
           ) : null}
 

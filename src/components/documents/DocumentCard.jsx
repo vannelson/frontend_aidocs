@@ -1,10 +1,11 @@
-import { Badge, Box, HStack, Stack, Text } from '@chakra-ui/react'
-import { FiFileText, FiShare2 } from 'react-icons/fi'
+import { Badge, Box, Button, HStack, Stack, Text } from '@chakra-ui/react'
+import { FiFileText, FiShare2, FiTrash2 } from 'react-icons/fi'
 import { extractTextPreview, formatRelativeTime, formatRoleLabel } from '../../utils/formatters'
 
-function DocumentCard({ document, onOpen }) {
+function DocumentCard({ document, onOpen, onDelete }) {
   const preview = extractTextPreview(document.content)
   const isShared = document.ownership_type === 'shared'
+  const canDelete = typeof onDelete === 'function' && document.ownership_type === 'owned'
 
   return (
     <Box
@@ -79,6 +80,25 @@ function DocumentCard({ document, onOpen }) {
             {preview || 'Start writing to see a preview of your document content.'}
           </Text>
         </Stack>
+
+        {canDelete ? (
+          <HStack justify="flex-end">
+            <Button
+              size="sm"
+              variant="ghost"
+              colorPalette="red"
+              onClick={(event) => {
+                event.stopPropagation()
+                onDelete(document)
+              }}
+            >
+              <HStack gap="2">
+                <FiTrash2 />
+                <Text>Delete</Text>
+              </HStack>
+            </Button>
+          </HStack>
+        ) : null}
       </Stack>
     </Box>
   )

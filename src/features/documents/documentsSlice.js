@@ -85,6 +85,18 @@ export const updateDocumentShare = createAsyncThunk(
   }
 )
 
+export const deleteDocument = createAsyncThunk(
+  'documents/deleteDocument',
+  async (documentId, thunkAPI) => {
+    try {
+      await documentService.deleteDocument(documentId)
+      return documentId
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error)
+    }
+  }
+)
+
 function replaceInList(list, document) {
   const index = list.findIndex((item) => item.id === document.id)
 
@@ -175,6 +187,22 @@ const documentsSlice = createSlice({
       .addCase(updateDocument.rejected, (state, action) => {
         state.actionStatus = 'failed'
         state.error = action.payload || 'Unable to update document.'
+      })
+      .addCase(deleteDocument.pending, (state) => {
+        state.actionStatus = 'loading'
+      })
+      .addCase(deleteDocument.fulfilled, (state, action) => {
+        state.actionStatus = 'succeeded'
+        state.ownedDocuments = state.ownedDocuments.filter((item) => item.id !== action.payload)
+
+        if (state.currentDocument?.id === action.payload) {
+          state.currentDocument = null
+          state.currentStatus = 'idle'
+        }
+      })
+      .addCase(deleteDocument.rejected, (state, action) => {
+        state.actionStatus = 'failed'
+        state.error = action.payload || 'Unable to delete document.'
       })
       .addCase(importDocument.pending, (state) => {
         state.actionStatus = 'loading'

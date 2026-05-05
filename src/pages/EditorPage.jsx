@@ -2,7 +2,7 @@ import { Badge, Box, Button, Flex, Heading, HStack, Input, Separator, Stack, Tex
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate, useParams } from 'react-router-dom'
-import { FiArrowLeft, FiSave, FiShare2 } from 'react-icons/fi'
+import { FiArrowLeft, FiDownload, FiSave, FiShare2 } from 'react-icons/fi'
 import DocumentToolbar from '../components/editor/DocumentToolbar'
 import RichTextEditor from '../components/editor/RichTextEditor'
 import ErrorState from '../components/common/ErrorState'
@@ -13,6 +13,7 @@ import {
   fetchDocumentById,
   updateDocument,
 } from '../features/documents/documentsSlice'
+import { exportDocumentToPdf } from '../utils/exportPdf'
 import { formatRoleLabel, formatTimestamp } from '../utils/formatters'
 import { toaster } from '../utils/toaster'
 
@@ -26,6 +27,7 @@ function EditorPage() {
   const [saveState, setSaveState] = useState('idle')
   const [lastSavedAt, setLastSavedAt] = useState('')
   const [shareOpen, setShareOpen] = useState(false)
+  const [isExportingPdf, setIsExportingPdf] = useState(false)
   const baselineRef = useRef({ title: '', content: '' })
   const autosaveTimerRef = useRef(null)
   const loadedDocumentIdRef = useRef(null)
@@ -129,6 +131,27 @@ function EditorPage() {
     performSave({ notifyOnSuccess: true })
   }, [performSave])
 
+  const handleExportPdf = useCallback(async () => {
+    setIsExportingPdf(true)
+
+    try {
+      await exportDocumentToPdf({ title, content })
+      toaster.create({
+        title: 'PDF exported',
+        description: 'Your document has been downloaded as a PDF.',
+        type: 'success',
+      })
+    } catch (requestError) {
+      toaster.create({
+        title: 'Export failed',
+        description: requestError?.message || 'Please try again.',
+        type: 'error',
+      })
+    } finally {
+      setIsExportingPdf(false)
+    }
+  }, [content, title])
+
   useEffect(() => {
     if (!currentDocument || !canEdit || loadedDocumentIdRef.current !== currentDocument.id) {
       return
@@ -207,6 +230,12 @@ function EditorPage() {
             <HStack gap="2">
               <FiSave />
               <Text>{saveState === 'saving' ? 'Saving...' : 'Save now'}</Text>
+            </HStack>
+          </Button>
+          <Button variant="outline" rounded="full" onClick={handleExportPdf} loading={isExportingPdf}>
+            <HStack gap="2">
+              <FiDownload />
+              <Text>Export PDF</Text>
             </HStack>
           </Button>
           {isOwner ? (

@@ -13,6 +13,9 @@ export const documentService = {
   updateDocument(documentId, payload) {
     return apiClient.put(`/documents/${documentId}`, payload)
   },
+  deleteDocument(documentId) {
+    return apiClient.delete(`/documents/${documentId}`)
+  },
   importDocument(file) {
     const formData = new FormData()
     formData.append('file', file)

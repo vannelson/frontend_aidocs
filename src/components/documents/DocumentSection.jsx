@@ -1,7 +1,7 @@
 import { Heading, SimpleGrid, Stack, Text } from '@chakra-ui/react'
 import DocumentCard from './DocumentCard'
 
-function DocumentSection({ title, subtitle, documents, onOpen }) {
+function DocumentSection({ title, subtitle, documents, onOpen, onDelete }) {
   return (
     <Stack gap="5">
       <Stack gap="1">
@@ -13,7 +13,7 @@ function DocumentSection({ title, subtitle, documents, onOpen }) {
 
       <SimpleGrid columns={{ base: 1, md: 2, xl: 3 }} gap="5">
         {documents.map((document) => (
-          <DocumentCard key={document.id} document={document} onOpen={onOpen} />
+          <DocumentCard key={document.id} document={document} onOpen={onOpen} onDelete={onDelete} />
         ))}
       </SimpleGrid>
     </Stack>
