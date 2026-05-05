@@ -23,9 +23,28 @@ apiClient.interceptors.request.use((config) => {
 apiClient.interceptors.response.use(
   (response) => response.data,
   (error) => {
+    const responseData = error?.response?.data
+
+    if (responseData instanceof Blob) {
+      return responseData.text().then((text) => {
+        try {
+          const parsed = JSON.parse(text)
+
+          return Promise.reject(
+            parsed?.message ||
+            parsed?.errors?.file?.[0] ||
+            error?.message ||
+            'Something went wrong.'
+          )
+        } catch {
+          return Promise.reject(error?.message || 'Something went wrong.')
+        }
+      })
+    }
+
     const message =
-      error?.response?.data?.message ||
-      error?.response?.data?.errors?.file?.[0] ||
+      responseData?.message ||
+      responseData?.errors?.file?.[0] ||
       error?.message ||
       'Something went wrong.'
 

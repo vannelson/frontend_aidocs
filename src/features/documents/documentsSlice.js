@@ -61,6 +61,30 @@ export const shareDocument = createAsyncThunk(
   }
 )
 
+export const fetchDocumentShares = createAsyncThunk(
+  'documents/fetchDocumentShares',
+  async (documentId, thunkAPI) => {
+    try {
+      const response = await documentService.getDocumentShares(documentId)
+      return response.data
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error)
+    }
+  }
+)
+
+export const updateDocumentShare = createAsyncThunk(
+  'documents/updateDocumentShare',
+  async ({ documentId, shareId, payload }, thunkAPI) => {
+    try {
+      const response = await documentService.updateDocumentShare(documentId, shareId, payload)
+      return response.data
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error)
+    }
+  }
+)
+
 function replaceInList(list, document) {
   const index = list.findIndex((item) => item.id === document.id)
 
@@ -84,12 +108,16 @@ const documentsSlice = createSlice({
     currentStatus: 'idle',
     actionStatus: 'idle',
     shareStatus: 'idle',
+    shareItems: [],
+    shareListStatus: 'idle',
     error: null,
   },
   reducers: {
     clearCurrentDocument(state) {
       state.currentDocument = null
       state.currentStatus = 'idle'
+      state.shareItems = []
+      state.shareListStatus = 'idle'
     },
   },
   extraReducers: (builder) => {
@@ -169,6 +197,30 @@ const documentsSlice = createSlice({
       .addCase(shareDocument.rejected, (state, action) => {
         state.shareStatus = 'failed'
         state.error = action.payload || 'Unable to share document.'
+      })
+      .addCase(fetchDocumentShares.pending, (state) => {
+        state.shareListStatus = 'loading'
+      })
+      .addCase(fetchDocumentShares.fulfilled, (state, action) => {
+        state.shareListStatus = 'succeeded'
+        state.shareItems = action.payload
+      })
+      .addCase(fetchDocumentShares.rejected, (state, action) => {
+        state.shareListStatus = 'failed'
+        state.error = action.payload || 'Unable to load shared users.'
+      })
+      .addCase(updateDocumentShare.pending, (state) => {
+        state.shareStatus = 'loading'
+      })
+      .addCase(updateDocumentShare.fulfilled, (state, action) => {
+        state.shareStatus = 'succeeded'
+        state.shareItems = state.shareItems.map((item) =>
+          item.id === action.payload.id ? action.payload : item
+        )
+      })
+      .addCase(updateDocumentShare.rejected, (state, action) => {
+        state.shareStatus = 'failed'
+        state.error = action.payload || 'Unable to update share.'
       })
   },
 })

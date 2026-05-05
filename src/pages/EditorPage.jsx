@@ -2,13 +2,12 @@ import { Badge, Box, Button, Flex, Heading, HStack, Input, Separator, Stack, Tex
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate, useParams } from 'react-router-dom'
-import { FiArrowLeft, FiDownload, FiFileText, FiSave, FiShare2 } from 'react-icons/fi'
+import { FiArrowLeft, FiSave, FiShare2 } from 'react-icons/fi'
 import DocumentToolbar from '../components/editor/DocumentToolbar'
 import RichTextEditor from '../components/editor/RichTextEditor'
 import ErrorState from '../components/common/ErrorState'
 import LoadingState from '../components/common/LoadingState'
 import ShareDialog from '../components/sharing/ShareDialog'
-import { documentService } from '../services/documentService'
 import {
   clearCurrentDocument,
   fetchDocumentById,
@@ -27,7 +26,6 @@ function EditorPage() {
   const [saveState, setSaveState] = useState('idle')
   const [lastSavedAt, setLastSavedAt] = useState('')
   const [shareOpen, setShareOpen] = useState(false)
-  const [exportingType, setExportingType] = useState('')
   const baselineRef = useRef({ title: '', content: '' })
   const autosaveTimerRef = useRef(null)
   const loadedDocumentIdRef = useRef(null)
@@ -131,58 +129,6 @@ function EditorPage() {
     performSave({ notifyOnSuccess: true })
   }, [performSave])
 
-  const downloadBlob = useCallback((blob, fileName) => {
-    const url = window.URL.createObjectURL(blob)
-    const anchor = window.document.createElement('a')
-
-    anchor.href = url
-    anchor.download = fileName
-    window.document.body.appendChild(anchor)
-    anchor.click()
-    anchor.remove()
-    window.URL.revokeObjectURL(url)
-  }, [])
-
-  const buildDownloadFileName = useCallback((extension) => {
-    const safeTitle = (title || currentDocument?.title || 'untitled-document')
-      .trim()
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '')
-
-    return `${safeTitle || 'untitled-document'}.${extension}`
-  }, [currentDocument?.title, title])
-
-  const handleExport = useCallback(async (type) => {
-    if (!currentDocument) {
-      return
-    }
-
-    setExportingType(type)
-
-    try {
-      const blob = type === 'pdf'
-        ? await documentService.exportPdf(currentDocument.id)
-        : await documentService.exportWord(currentDocument.id)
-
-      downloadBlob(blob, buildDownloadFileName(type === 'pdf' ? 'pdf' : 'docx'))
-
-      toaster.create({
-        title: type === 'pdf' ? 'PDF export ready' : 'Word export ready',
-        description: `Your document has been downloaded as ${type === 'pdf' ? 'PDF' : 'Word'}.`,
-        type: 'success',
-      })
-    } catch (requestError) {
-      toaster.create({
-        title: 'Export failed',
-        description: requestError || 'Please try again.',
-        type: 'error',
-      })
-    } finally {
-      setExportingType('')
-    }
-  }, [buildDownloadFileName, currentDocument, downloadBlob])
-
   useEffect(() => {
     if (!currentDocument || !canEdit || loadedDocumentIdRef.current !== currentDocument.id) {
       return
@@ -261,30 +207,6 @@ function EditorPage() {
             <HStack gap="2">
               <FiSave />
               <Text>{saveState === 'saving' ? 'Saving...' : 'Save now'}</Text>
-            </HStack>
-          </Button>
-          <Button
-            variant="outline"
-            rounded="full"
-            onClick={() => handleExport('pdf')}
-            loading={exportingType === 'pdf'}
-            disabled={exportingType === 'word'}
-          >
-            <HStack gap="2">
-              <FiDownload />
-              <Text>Export PDF</Text>
-            </HStack>
-          </Button>
-          <Button
-            variant="outline"
-            rounded="full"
-            onClick={() => handleExport('word')}
-            loading={exportingType === 'word'}
-            disabled={exportingType === 'pdf'}
-          >
-            <HStack gap="2">
-              <FiFileText />
-              <Text>Export Word</Text>
             </HStack>
           </Button>
           {isOwner ? (

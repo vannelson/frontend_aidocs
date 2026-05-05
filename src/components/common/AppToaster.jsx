@@ -8,6 +8,30 @@ import {
 } from '@chakra-ui/react'
 import { toaster } from '../../utils/toaster'
 
+function renderToastValue(value) {
+  if (typeof value === 'string' || typeof value === 'number') {
+    return String(value)
+  }
+
+  if (value instanceof Error) {
+    return value.message || 'Something went wrong.'
+  }
+
+  if (value && typeof value === 'object') {
+    if (typeof value.message === 'string') {
+      return value.message
+    }
+
+    try {
+      return JSON.stringify(value)
+    } catch {
+      return 'Something went wrong.'
+    }
+  }
+
+  return ''
+}
+
 export function AppToaster() {
   return (
     <Portal>
@@ -27,14 +51,14 @@ export function AppToaster() {
             <HStack align="start" gap="3">
               <Toast.Indicator mt="1" flexShrink="0" />
               <Stack gap="1" flex="1">
-                {toast.title ? (
+                {renderToastValue(toast.title) ? (
                   <Text fontSize="sm" fontWeight="700" lineHeight="1.3" color="white">
-                    {toast.title}
+                    {renderToastValue(toast.title)}
                   </Text>
                 ) : null}
-                {toast.description ? (
+                {renderToastValue(toast.description) ? (
                   <Text fontSize="sm" color="whiteAlpha.800" lineHeight="1.45">
-                    {toast.description}
+                    {renderToastValue(toast.description)}
                   </Text>
                 ) : null}
               </Stack>

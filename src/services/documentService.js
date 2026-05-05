@@ -26,4 +26,10 @@ export const documentService = {
   shareDocument(documentId, payload) {
     return apiClient.post(`/documents/${documentId}/share`, payload)
   },
+  getDocumentShares(documentId) {
+    return apiClient.get(`/documents/${documentId}/share`)
+  },
+  updateDocumentShare(documentId, shareId, payload) {
+    return apiClient.put(`/documents/${documentId}/share/${shareId}`, payload)
+  },
 }
